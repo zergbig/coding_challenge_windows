@@ -7,8 +7,6 @@
 #include <windows.h>
 #include <iostream>
 
-int g_Counter;
-
 DWORD WINAPI countIt(LPVOID var)
 {
     int* p = (int*)var;
