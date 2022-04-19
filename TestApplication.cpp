@@ -6,30 +6,49 @@
 
 #include <windows.h>
 #include <iostream>
+#include <mutex>
 
-int g_Counter;
+struct vars
+{
+	int g_Counter;
+	int value;
+	std::mutex mtx;
+};
 
+///////////////////////////////////////////////////////////////
+// countIt - THREAD SAFE 
+// 
+// input - vars struct
+// output  - DWORD counter value
+//
+// purpose: count up to a specified value, printing the current count to
+// stdout on a new line
+//
 DWORD WINAPI countIt(LPVOID var)
 {
-    int* p = (int*)var;
-    while (g_Counter < *p)
-    {
-        g_Counter++;
-        std::cout << "Count " << g_Counter << "\r\n";
-    }
-    return g_Counter;
+	vars* v = (vars*)var;
+	{
+		// critical section: updating g_Counter
+		std::unique_lock<std::mutex> uLock{ v->mtx };
+		while (v->g_Counter < v->value)
+		{
+			v->g_Counter++;
+			std::cout << "Count " << v->g_Counter << "\r\n";
+		}
+	}
+	return v->g_Counter;
 }
 
 int main()
 {
-    int value = 1000;
-    DWORD th1Id, th2Id;
-    HANDLE th[2];
-    th[0] = CreateThread(NULL, 0, countIt, &value, 0, &th1Id);
-    th[1] = CreateThread(NULL, 0, countIt, &value, 0, &th1Id);
+	DWORD th1Id, th2Id;
+	HANDLE th[2];
+	vars v{ 0, 1000 };
 
-    WaitForMultipleObjects(2, th, TRUE, 1000);
+	th[0] = CreateThread(NULL, 0, countIt, &v, 0, &th1Id);
+	th[1] = CreateThread(NULL, 0, countIt, &v, 0, &th2Id);
 
-    std::cout << "Numbers are listed from 1 to 1000 in order!\r\n";
+	WaitForMultipleObjects(2, th, TRUE, 1000);
+
+	std::cout << "Numbers are listed from 1 to 1000 in order!\r\n";
 }
-
