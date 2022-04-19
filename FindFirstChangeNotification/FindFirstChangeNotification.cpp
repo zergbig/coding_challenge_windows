@@ -97,7 +97,7 @@ void MyThread(void* param)
 		}
 	} // while doneFlag == false
 
-	FindCloseChangeNotification(dwChangeHandles[0]); //greg this should release the mutex 
+	FindCloseChangeNotification(dwChangeHandles[0]);
 	if (drawListRet == WAIT_OBJECT_0 || drawListRet == WAIT_ABANDONED)
 	{
 		ReleaseMutex(g_readyMutex);
@@ -109,7 +109,7 @@ void MyThread(void* param)
 
 void GetReady()
 {
-	DWORD drawListRet = WaitForSingleObject(g_readyMutex, INFINITE); //greg here top of stack fail;
+	DWORD drawListRet = WaitForSingleObject(g_readyMutex, INFINITE);
 
 	DWORD notificationRet = WaitForSingleObject(g_notificationListMutex, INFINITE);
 
